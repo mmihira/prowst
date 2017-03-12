@@ -1,16 +1,50 @@
-extern crate piston_window;
+extern crate sdl2;
+
+use sdl2::rect::Rect;
+use sdl2::event::Event;
+use sdl2::keyboard::Keycode;
+use sdl2::pixels::PixelFormatEnum;
+
 mod material;
+mod pixel_buffer;
+mod simulation_engine;
+use simulation_engine::SimulationEngine;
 
-use piston_window::*;
+const SCREEN_WIDTH: u32 = 800;
+const SCREEN_HEIGHT: u32 = 600;
 
-fn main() {
-    let window: PistonWindow = WindowSettings::new(
-        "piston-tutorial",
-        [200, 100]
-    )
+pub fn main() {
+    let sdl_context = sdl2::init().unwrap();
+    let video_subsystem = sdl_context.video().unwrap();
+    let window = video_subsystem.window("prowst",   SCREEN_WIDTH, SCREEN_HEIGHT)
+        .position_centered()
+        .opengl()
+        .build()
+        .unwrap();
 
-    .exit_on_esc(true)
-    .build()
-    .unwrap();
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    let mut renderer = window.renderer().accelerated().build().unwrap();
+    let mut texture = renderer.create_texture_streaming(
+        PixelFormatEnum::RGB24, SCREEN_WIDTH, SCREEN_HEIGHT).unwrap();
+
+    let simulation_engine = SimulationEngine::new(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize);
+
+    let mut event_pump = sdl_context.event_pump().unwrap();
+
+    'running: loop {
+        for event in event_pump.poll_iter() {
+            match event {
+                Event::Quit {..}
+                | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                    break 'running
+                },
+                _ => { }
+            }
+        }
+
+        simulation_engine.update(&mut texture);
+
+        renderer.clear();
+        renderer.copy(&texture, None, Some(Rect::new(100, 100, SCREEN_WIDTH, SCREEN_HEIGHT))).unwrap();
+        renderer.present();
+    }
 }
