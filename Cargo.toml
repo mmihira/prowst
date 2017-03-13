@@ -4,8 +4,12 @@ version = "0.1.0"
 authors = ["mmihira <mmihira.w@gmail.com>"]
 
 [dependencies]
+time = "0.1.36"
 
 [dependencies.sdl2]
 version = "0.29"
 default-features = false
 features = ["gfx"]
+
+[profile.dev]
+opt-level = 3

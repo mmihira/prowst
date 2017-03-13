@@ -1,4 +1,5 @@
 extern crate sdl2;
+extern crate time;
 
 use sdl2::rect::Rect;
 use sdl2::event::Event;
@@ -26,7 +27,7 @@ pub fn main() {
     let mut texture = renderer.create_texture_streaming(
         PixelFormatEnum::RGB24, SCREEN_WIDTH, SCREEN_HEIGHT).unwrap();
 
-    let simulation_engine = SimulationEngine::new(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize);
+    let mut simulation_engine = SimulationEngine::new(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize);
 
     let mut event_pump = sdl_context.event_pump().unwrap();
 
@@ -42,9 +43,8 @@ pub fn main() {
         }
 
         simulation_engine.update(&mut texture);
-
         renderer.clear();
-        renderer.copy(&texture, None, Some(Rect::new(100, 100, SCREEN_WIDTH, SCREEN_HEIGHT))).unwrap();
+        renderer.copy(&texture, None, Some(Rect::new(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT))).unwrap();
         renderer.present();
     }
 }

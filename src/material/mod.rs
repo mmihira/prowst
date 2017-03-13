@@ -1,15 +1,27 @@
 #[derive(Debug)]
 pub struct RGB          { pub red: usize, pub green: usize, pub blue: usize  }
-pub struct Sand         { speed: f32, rgb: RGB }
-pub struct Water        { speed: f32, rgb: RGB }
-pub struct Stone        { speed: f32, rgb: RGB }
-pub struct Background   { rgb: RGB }
+#[derive(Debug)]
+pub struct Sand         { speed: f32, rgb: RGB , state: State }
+#[derive(Debug)]
+pub struct Water        { speed: f32, rgb: RGB , state: State }
+#[derive(Debug)]
+pub struct Stone        { speed: f32, rgb: RGB , state: State }
+#[derive(Debug)]
+pub struct Background   { rgb: RGB, state: State }
 
+#[derive(Debug)]
 pub enum Material {
     Sand(Sand),
     Water(Water),
     Stone(Stone),
     Background(Background)
+}
+
+#[derive(PartialEq, Debug)]
+pub enum State {
+    Free,
+    Set,
+    Dead
 }
 
 impl Material {
@@ -19,6 +31,15 @@ impl Material {
             Material::Water(ref x) => &x.rgb,
             Material::Stone(ref x) => &x.rgb,
             Material::Background(ref x) => &x.rgb
+        }
+    }
+
+    pub fn state(&self) -> &State {
+        match *self {
+            Material::Sand(ref x) => &x.state,
+            Material::Water(ref x) => &x.state,
+            Material::Stone(ref x) => &x.state,
+            Material::Background(ref x) => &x.state
         }
     }
 }
@@ -38,7 +59,8 @@ impl Default for Sand {
     fn default() -> Sand {
         Sand {
             speed: 0.10f32,
-            rgb: RGB { red: 10, green: 10, blue: 10 }
+            rgb: RGB { red: 255, green: 255, blue: 255 },
+            state: State::Free
         }
     }
 }
@@ -47,7 +69,8 @@ impl Default for Water {
     fn default() -> Water {
         Water {
             speed: 0.10f32,
-            rgb: RGB { red: 10, green: 10, blue: 10 }
+            rgb: RGB { red: 10, green: 10, blue: 10 },
+            state: State::Free
         }
     }
 }
@@ -56,7 +79,8 @@ impl Default for Stone {
     fn default() -> Stone {
         Stone {
             speed: 0.10f32,
-            rgb: RGB { red: 10, green: 10, blue: 10 }
+            rgb: RGB { red: 10, green: 10, blue: 10 },
+            state: State::Free
         }
     }
 }
@@ -64,7 +88,8 @@ impl Default for Stone {
 impl Default for Background {
     fn default() -> Background {
         Background {
-            rgb: RGB { red: 40, green: 30, blue: 10 }
+            rgb: RGB { red: 40, green: 30, blue: 10 },
+            state: State::Free
         }
     }
 }
