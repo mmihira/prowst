@@ -34,31 +34,32 @@ impl SimulationEngine {
         (&self.pixel_buffer)[y][x].rgb()
     }
 
-    pub fn update(&mut self, texture: &mut sdl2::render::Texture) {
-        // let previousUpdate = self.time_at_last_update;
-        // if time::SteadyTime::now() - previousUpdate > time::Duration::milliseconds(1) {
-        if true {
-            for ix in 0..self.cells_to_update.len() {
-                let i = &mut self.cells_to_update[ix as usize];
-                if *self.pixel_buffer[i.curr.0][i.curr.1].state() == material::State::Free {
-                    i.prev = i.curr;
-                    i.curr.0 = i.curr.0 + 1;
-                }
-            }
-            // self.time_at_last_update = time::SteadyTime::now();
-            for i in &self.cells_to_update {
-                let k = self.pixel_buffer[i.prev.0][i.prev.1].clone();
-                // println!("loc = {:?}", i );
-                // println!("{:?}", k);
-                mem::replace(&mut (&mut self.pixel_buffer)[i.curr.0][i.curr.1], k);
-                mem::replace(
-                    &mut (&mut self.pixel_buffer)[i.prev.0][i.prev.1],
-                    material::Material::Background(material::Background::default())
-                    );
+    pub fn add_to_map(&self, x: usize, y: usize, k: material::Material ) {
+    }
+
+    fn update_cells(&mut self) {
+        for cell in 0..self.cells_to_update.len() {
+            let i = &mut self.cells_to_update[cell as usize];
+            if *self.pixel_buffer[i.curr.0][i.curr.1].state() == material::State::Free {
+                i.prev = i.curr;
+                i.curr.0 = i.curr.0 + 1;
             }
         }
+    }
 
-        let z: [u8; 800*600*3] = [0; 800*600*3];
+    fn update_pixel_buffer(&mut self) {
+        for i in &self.cells_to_update {
+            let k = self.pixel_buffer[i.prev.0][i.prev.1].clone();
+            mem::replace(&mut (&mut self.pixel_buffer)[i.curr.0][i.curr.1], k);
+            mem::replace(
+                &mut (&mut self.pixel_buffer)[i.prev.0][i.prev.1],
+                material::Material::Background(material::Background::default())
+                );
+        }
+    }
+
+    fn update_texture(&mut self, texture: &mut sdl2::render::Texture) {
+        let mut z: [u8; 800*600*3] = [0; 800*600*3];
         for y in 0..self.buffer_height {
             for x in 0..self.buffer_width {
                 let offset = y*2400+ x*3;
@@ -67,19 +68,17 @@ impl SimulationEngine {
                 z[offset + 2] = self.rgb_index(x, y).blue as u8;
             }
         }
-
         texture.update(None,&z,2400).unwrap();
+    }
 
-        // texture.with_lock(None, |buffer: &mut [u8], pitch: usize| {
-        //     for y in 0..self.buffer_height {
-        //         for x in 0..self.buffer_width {
-        //             println!("{:?}", pitch);
-        //             let offset = y*pitch + x*3;
-        //             buffer[offset + 0] = self.rgb_index(x, y).red as u8;
-        //             buffer[offset + 1] = self.rgb_index(x, y).green as u8;
-        //             buffer[offset + 2] = self.rgb_index(x, y).blue as u8;
-        //         }
-        //     }
-        // }).unwrap()
+    pub fn update(&mut self, texture: &mut sdl2::render::Texture) {
+        let previousUpdate = self.time_at_last_update;
+
+        if time::SteadyTime::now() - previousUpdate > time::Duration::milliseconds(50) {
+            self.time_at_last_update = time::SteadyTime::now();
+            self.update_cells();
+            self.update_pixel_buffer();
+            self.update_texture(texture);
+        }
     }
 }
