@@ -38,6 +38,9 @@ pub fn main() {
                 | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
+                Event::MouseMotion {x: x_c, y: y_c, ..} => {
+                    simulation_engine.add_sand(x_c as usize, y_c as usize);
+                },
                 _ => { }
             }
         }

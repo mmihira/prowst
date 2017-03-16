@@ -1,6 +1,6 @@
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct RGB          { pub red: usize, pub green: usize, pub blue: usize  }
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Sand         { speed: f32, rgb: RGB , state: State }
 #[derive(Debug)]
 pub struct Water        { speed: f32, rgb: RGB , state: State }
@@ -17,7 +17,7 @@ pub enum Material {
     Background(Background)
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum State {
     Free,
     Set,
@@ -34,12 +34,21 @@ impl Material {
         }
     }
 
-    pub fn state(&self) -> &State {
+    pub fn state(&self) -> State {
         match *self {
-            Material::Sand(ref x) => &x.state,
-            Material::Water(ref x) => &x.state,
-            Material::Stone(ref x) => &x.state,
-            Material::Background(ref x) => &x.state
+            Material::Sand(ref x) => x.state,
+            Material::Water(ref x) => x.state,
+            Material::Stone(ref x) => x.state,
+            Material::Background(ref x) => x.state
+        }
+    }
+
+    pub fn set_state(&mut self, new_state: State) {
+        match *self {
+            Material::Sand(ref mut x) => x.state = new_state,
+            Material::Water(ref mut x) => x.state = new_state,
+            Material::Stone(ref mut x) => x.state = new_state,
+            Material::Background(ref mut x) => x.state = new_state
         }
     }
 }
@@ -47,7 +56,7 @@ impl Material {
 impl Clone for Material {
     fn clone(&self) -> Material {
         match *self {
-            Material::Sand(_) => Material::Sand(Sand::default()),
+            Material::Sand(ref x) => Material::Sand(x.clone()),
             Material::Water(_) => Material::Water(Water::default()),
             Material::Stone(_) => Material::Stone(Stone::default()),
             Material::Background(_) => Material::Background(Background::default())

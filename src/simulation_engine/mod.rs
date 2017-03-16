@@ -37,24 +37,50 @@ impl SimulationEngine {
     pub fn add_to_map(&self, x: usize, y: usize, k: material::Material ) {
     }
 
+    pub fn add_sand(&mut self, x: usize, y: usize) {
+        let row = &mut self.pixel_buffer[y];
+        mem::replace(&mut row[x], material::Material::Sand(material::Sand::default()));
+        self.cells_to_update.push( Loc { curr: (y, x), prev: (y, x) } )
+    }
+
     fn update_cells(&mut self) {
         for cell in 0..self.cells_to_update.len() {
             let i = &mut self.cells_to_update[cell as usize];
-            if *self.pixel_buffer[i.curr.0][i.curr.1].state() == material::State::Free {
-                i.prev = i.curr;
-                i.curr.0 = i.curr.0 + 1;
+            let state = self.pixel_buffer[i.curr.0][i.curr.1].state();
+            match state {
+                material::State::Free => {
+                    let mut material = &mut self.pixel_buffer[i.curr.0][i.curr.1];
+                    i.prev = i.curr;
+                    i.curr.0 = i.curr.0 + 1;
+                    if i.curr.0 == (self.buffer_height - 1) {
+                        material.set_state(material::State::Dead);
+                        println!("dead {:?}", material);
+                    }
+                },
+                material::State::Dead => {
+
+                },
+                _ => {}
             }
         }
     }
 
     fn update_pixel_buffer(&mut self) {
         for i in &self.cells_to_update {
-            let k = self.pixel_buffer[i.prev.0][i.prev.1].clone();
-            mem::replace(&mut (&mut self.pixel_buffer)[i.curr.0][i.curr.1], k);
-            mem::replace(
-                &mut (&mut self.pixel_buffer)[i.prev.0][i.prev.1],
-                material::Material::Background(material::Background::default())
-                );
+            let state = self.pixel_buffer[i.prev.0][i.prev.1].state();
+            match state {
+                material::State::Free => {
+                    let k = self.pixel_buffer[i.prev.0][i.prev.1].clone();
+                    mem::replace(&mut (&mut self.pixel_buffer)[i.curr.0][i.curr.1], k);
+                    mem::replace(
+                        &mut (&mut self.pixel_buffer)[i.prev.0][i.prev.1],
+                        material::Material::Background(material::Background::default())
+                        );
+                },
+                material::State::Dead => {
+                },
+                _ => {}
+            }
         }
     }
 
