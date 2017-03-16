@@ -1,5 +1,6 @@
 use pixel_buffer;
-use material;
+use material::Material;
+use material::RGB;
 use sdl2;
 use time;
 use std::mem;
@@ -16,7 +17,15 @@ pub struct SimulationEngine {
 #[derive(Debug)]
 pub struct Loc {
     prev: (usize, usize),
-    curr: (usize, usize)
+    curr: (usize, usize),
+    state: State
+}
+
+#[derive(PartialEq, Debug)]
+pub enum State {
+    Calc,
+    Set,
+    Dead
 }
 
 impl SimulationEngine {
@@ -26,58 +35,55 @@ impl SimulationEngine {
             buffer_width: width,
             buffer_height: height,
             time_at_last_update: time::SteadyTime::now(),
-            cells_to_update: vec![Loc{curr: (10, 10), prev: (0, 0)}]
+            cells_to_update: vec![Loc{curr: (10, 10), prev: (10, 10), state: State::Calc}]
         }
     }
 
-    pub fn rgb_index(&self, x: usize, y: usize)-> &material::RGB {
-        (&self.pixel_buffer)[y][x].rgb()
+    pub fn rgb_index(&self, x: usize, y: usize)-> &RGB {
+        (&self.pixel_buffer)[y][x].contents.rgb()
     }
 
-    pub fn add_to_map(&self, x: usize, y: usize, k: material::Material ) {
+    pub fn add_to_map(&self, x: usize, y: usize, k: Material ) {
     }
 
     pub fn add_sand(&mut self, x: usize, y: usize) {
         let row = &mut self.pixel_buffer[y];
-        mem::replace(&mut row[x], material::Material::Sand(material::Sand::default()));
-        self.cells_to_update.push( Loc { curr: (y, x), prev: (y, x) } )
+        row[x].contents = Material::sand();
+        self.cells_to_update.push( Loc { curr: (y, x), prev: (y, x), state: State::Calc } )
+    }
+
+    fn clean_dead(&mut self) {
+        self.cells_to_update.retain(|ref x| x.state != State::Dead);
     }
 
     fn update_cells(&mut self) {
-        for cell in 0..self.cells_to_update.len() {
-            let i = &mut self.cells_to_update[cell as usize];
-            let state = self.pixel_buffer[i.curr.0][i.curr.1].state();
-            match state {
-                material::State::Free => {
-                    let mut material = &mut self.pixel_buffer[i.curr.0][i.curr.1];
-                    i.prev = i.curr;
-                    i.curr.0 = i.curr.0 + 1;
-                    if i.curr.0 == (self.buffer_height - 1) {
-                        material.set_state(material::State::Dead);
-                        println!("dead {:?}", material);
+        self.clean_dead();
+        for i in 0..self.cells_to_update.len() {
+            let ref mut loc = self.cells_to_update[i as usize];
+            match *&loc.state {
+                State::Calc => {
+                    loc.prev = loc.curr.clone();
+                    loc.curr.0 = loc.curr.0 + 1;
+                    if loc.curr.0 == (self.buffer_height - 1) {
+                        loc.state = State::Dead;
                     }
-                },
-                material::State::Dead => {
-
-                },
+                }
                 _ => {}
             }
         }
     }
 
     fn update_pixel_buffer(&mut self) {
-        for i in &self.cells_to_update {
-            let state = self.pixel_buffer[i.prev.0][i.prev.1].state();
-            match state {
-                material::State::Free => {
-                    let k = self.pixel_buffer[i.prev.0][i.prev.1].clone();
-                    mem::replace(&mut (&mut self.pixel_buffer)[i.curr.0][i.curr.1], k);
-                    mem::replace(
-                        &mut (&mut self.pixel_buffer)[i.prev.0][i.prev.1],
-                        material::Material::Background(material::Background::default())
-                        );
+        for loc in &self.cells_to_update {
+            let Loc { ref prev, ref curr, ref state } = *loc;
+            match *state {
+                State::Calc => {
+                    let old_contents = self.pixel_buffer[prev.0][prev.1].contents.clone();
+                    self.pixel_buffer[curr.0][curr.1].set_contents(old_contents);
+                    self.pixel_buffer[prev.0][prev.1].set_contents(Material::default());
                 },
-                material::State::Dead => {
+                State::Dead => {
+                    self.pixel_buffer[prev.0][prev.1].set_contents(Material::default());
                 },
                 _ => {}
             }
@@ -99,7 +105,6 @@ impl SimulationEngine {
 
     pub fn update(&mut self, texture: &mut sdl2::render::Texture) {
         let previousUpdate = self.time_at_last_update;
-
         if time::SteadyTime::now() - previousUpdate > time::Duration::milliseconds(50) {
             self.time_at_last_update = time::SteadyTime::now();
             self.update_cells();

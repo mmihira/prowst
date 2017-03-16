@@ -34,6 +34,14 @@ impl Material {
         }
     }
 
+    pub fn default() -> Material {
+        Material::Background(Background::default())
+    }
+
+    pub fn sand() -> Material {
+        Material::Sand(Sand::default())
+    }
+
     pub fn state(&self) -> State {
         match *self {
             Material::Sand(ref x) => x.state,

@@ -1,21 +1,31 @@
-use material;
+use material::Material;
+use material::Sand;
 use std::vec;
 use std::mem;
 
-pub type PixelBuffer = Vec<Vec<material::Material>>;
+pub type PixelBuffer = Vec<Vec<Cell>>;
+
+#[derive(Clone, Debug)]
+pub struct Cell {
+    pub contents: Material
+}
+
+impl Cell {
+    fn default() -> Cell {
+        Cell { contents: Material::default() }
+    }
+
+    pub fn set_contents(&mut self, new_contents: Material) {
+        self.contents = new_contents.clone();
+    }
+}
 
 pub fn new(width: usize, height: usize) -> PixelBuffer {
     let mut v = Vec::with_capacity(height);
-    for _ in 0..height {
-        v.push(vec![material::Material::Background(material::Background::default()); width]);
-    }
+    for _ in 0..height { v.push(vec![Cell::default(); width]) }
     {
         let row = &mut v[10];
-        mem::replace(&mut row[10], material::Material::Sand(material::Sand::default()));
-    }
-    {
-        let row = &mut v[10];
-        mem::replace(&mut row[30], material::Material::Sand(material::Sand::default()));
+        row[10].contents = Material::Sand(Sand::default());
     }
     return v;
 }
