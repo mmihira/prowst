@@ -5,7 +5,7 @@ use sdl2::rect::Rect;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::PixelFormatEnum;
-use sdl2::surface::Surface;
+use sdl2::surface::{Surface,SurfaceRef};
 
 mod material;
 mod pixel_buffer;
@@ -24,10 +24,9 @@ pub fn main() {
         .build()
         .unwrap();
 
-    let mut renderer = window.renderer().accelerated().build().unwrap();
-    let mut texture = renderer.create_texture_streaming(
-        PixelFormatEnum::RGB24, SCREEN_WIDTH, SCREEN_HEIGHT).unwrap();
-    let surface = Surface::new(512, 512, PixelFormatEnum::RGB24).unwrap();
+    // let mut renderer = window.renderer().accelerated().build().unwrap();
+    // let mut texture = renderer.create_texture_streaming( PixelFormatEnum::RGB24, SCREEN_WIDTH, SCREEN_HEIGHT).unwrap();
+    let mut surface = Surface::new(SCREEN_WIDTH, SCREEN_HEIGHT, PixelFormatEnum::RGB24).unwrap();
     let mut simulation_engine = SimulationEngine::new(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize);
     let mut event_pump = sdl_context.event_pump().unwrap();
 
@@ -41,10 +40,22 @@ pub fn main() {
                 _ => { simulation_engine.handle_event(&event) }
             }
         }
-
-        simulation_engine.update(&mut texture);
-        renderer.clear();
-        renderer.copy(&texture, None, Some(Rect::new(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT))).unwrap();
-        renderer.present();
+        simulation_engine.update(&mut surface);
+        // get the surface used by our window
+        let screen = window.surface(&event_pump).unwrap();
+        // copy our surface unto the window's surface
+        //copy our surface unto the window's surface
+        unsafe {
+            // this is somewhat ugly, but in the current state
+            // there is no easy SurfaceRef -> Surface conversion
+            let _ = surface.blit(None, SurfaceRef::from_ll_mut(screen.raw()), None);
+        }
+        {
+            // update the window to display the changed surface
+            match window.update_surface() {
+                Ok(_) => {},
+                Err(err) => panic!("failed to update window surface: {}", err)
+            }
+        }
     }
 }

@@ -44,13 +44,13 @@ impl SimulationEngine {
         }
     }
 
-    pub fn update(&mut self, texture: &mut sdl2::render::Texture) {
+    pub fn update(&mut self, surface: &mut sdl2::surface::Surface) {
         let previous_update = self.time_at_last_update;
         if time::SteadyTime::now() - previous_update > time::Duration::milliseconds(50) {
             self.time_at_last_update = time::SteadyTime::now();
             self.update_cells();
             self.update_pixel_buffer();
-            self.update_texture(texture);
+            self.update_texture(surface);
         }
     }
 
@@ -133,16 +133,16 @@ impl SimulationEngine {
         }
     }
 
-    fn update_texture(&mut self, texture: &mut sdl2::render::Texture) {
-        let mut z: [u8; 800*600*3] = [0; 800*600*3];
+    fn update_texture(&mut self, surface: &mut sdl2::surface::Surface) {
+        let ref pitch = surface.pitch();
+        let buffer: &mut [u8] = surface.without_lock_mut().unwrap();
         for y in 0..self.buffer_height {
             for x in 0..self.buffer_width {
-                let offset = y*2400+ x*3;
-                z[offset + 0] = self.rgb_index(x, y).red as u8;
-                z[offset + 1] = self.rgb_index(x, y).green as u8;
-                z[offset + 2] = self.rgb_index(x, y).blue as u8;
+                let offset = y*(*pitch as usize) + x*3;
+                buffer[offset + 0] = self.rgb_index(x, y).red as u8;
+                buffer[offset + 1] = self.rgb_index(x, y).green as u8;
+                buffer[offset + 2] = self.rgb_index(x, y).blue as u8;
             }
         }
-        texture.update(None,&z,2400).unwrap();
     }
 }
