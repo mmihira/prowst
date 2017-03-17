@@ -2,6 +2,7 @@ use pixel_buffer;
 use material::Material;
 use material::RGB;
 use sdl2;
+use sdl2::event::Event;
 use time;
 use std::mem;
 use std::vec;
@@ -11,7 +12,9 @@ pub struct SimulationEngine {
     buffer_width: usize,
     buffer_height: usize,
     time_at_last_update: time::SteadyTime,
-    cells_to_update: Vec<Loc>
+    cells_to_update: Vec<Loc>,
+    mouse_button_down: bool,
+    selected_material: Material
 }
 
 #[derive(Debug)]
@@ -35,7 +38,44 @@ impl SimulationEngine {
             buffer_width: width,
             buffer_height: height,
             time_at_last_update: time::SteadyTime::now(),
-            cells_to_update: vec![Loc{curr: (10, 10), prev: (10, 10), state: State::Calc}]
+            cells_to_update: vec![Loc{curr: (10, 10), prev: (10, 10), state: State::Calc}],
+            mouse_button_down: false,
+            selected_material: Material::sand()
+        }
+    }
+
+    pub fn update(&mut self, texture: &mut sdl2::render::Texture) {
+        let previous_update = self.time_at_last_update;
+        if time::SteadyTime::now() - previous_update > time::Duration::milliseconds(50) {
+            self.time_at_last_update = time::SteadyTime::now();
+            self.update_cells();
+            self.update_pixel_buffer();
+            self.update_texture(texture);
+        }
+    }
+
+    pub fn handle_event(&mut self, event: &Event) {
+        match *event {
+            Event::KeyUp {keycode, ..}
+                if keycode.unwrap() == sdl2::keyboard::Keycode::K => {
+                    self.selected_material = Material::stone();
+            },
+            Event::KeyUp {keycode, ..}
+                if keycode.unwrap() == sdl2::keyboard::Keycode::S => {
+                    self.selected_material = Material::sand();
+            },
+            Event::MouseButtonDown {..} => {
+                self.mouse_button_down = true;
+            },
+            Event::MouseButtonUp {..} => {
+                self.mouse_button_down = false
+            },
+            Event::MouseMotion {x, y, ..} => {
+                if self.mouse_button_down {
+                    self.add_to_map(x as usize, y as usize);
+                }
+            },
+            _ => {}
         }
     }
 
@@ -43,7 +83,10 @@ impl SimulationEngine {
         (&self.pixel_buffer)[y][x].contents.rgb()
     }
 
-    pub fn add_to_map(&self, x: usize, y: usize, k: Material ) {
+    pub fn add_to_map(&mut self, x: usize, y: usize) {
+        let ref mut row = self.pixel_buffer[y];
+        row[x].contents = self.selected_material.clone();
+        self.cells_to_update.push( Loc { curr: (y, x), prev: (y, x), state: State::Calc } )
     }
 
     pub fn add_sand(&mut self, x: usize, y: usize) {
@@ -101,15 +144,5 @@ impl SimulationEngine {
             }
         }
         texture.update(None,&z,2400).unwrap();
-    }
-
-    pub fn update(&mut self, texture: &mut sdl2::render::Texture) {
-        let previousUpdate = self.time_at_last_update;
-        if time::SteadyTime::now() - previousUpdate > time::Duration::milliseconds(50) {
-            self.time_at_last_update = time::SteadyTime::now();
-            self.update_cells();
-            self.update_pixel_buffer();
-            self.update_texture(texture);
-        }
     }
 }

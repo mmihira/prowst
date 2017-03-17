@@ -5,6 +5,7 @@ use sdl2::rect::Rect;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::PixelFormatEnum;
+use sdl2::surface::Surface;
 
 mod material;
 mod pixel_buffer;
@@ -26,9 +27,8 @@ pub fn main() {
     let mut renderer = window.renderer().accelerated().build().unwrap();
     let mut texture = renderer.create_texture_streaming(
         PixelFormatEnum::RGB24, SCREEN_WIDTH, SCREEN_HEIGHT).unwrap();
-
+    let surface = Surface::new(512, 512, PixelFormatEnum::RGB24).unwrap();
     let mut simulation_engine = SimulationEngine::new(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize);
-
     let mut event_pump = sdl_context.event_pump().unwrap();
 
     'running: loop {
@@ -38,10 +38,7 @@ pub fn main() {
                 | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
-                Event::MouseMotion {x: x_c, y: y_c, ..} => {
-                    simulation_engine.add_sand(x_c as usize, y_c as usize);
-                },
-                _ => { }
+                _ => { simulation_engine.handle_event(&event) }
             }
         }
 

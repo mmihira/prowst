@@ -42,6 +42,10 @@ impl Material {
         Material::Sand(Sand::default())
     }
 
+    pub fn stone() -> Material {
+        Material::Stone(Stone::default())
+    }
+
     pub fn state(&self) -> State {
         match *self {
             Material::Sand(ref x) => x.state,
@@ -96,7 +100,7 @@ impl Default for Stone {
     fn default() -> Stone {
         Stone {
             speed: 0.10f32,
-            rgb: RGB { red: 10, green: 10, blue: 10 },
+            rgb: RGB { red: 255, green: 0, blue: 0 },
             state: State::Free
         }
     }
@@ -105,7 +109,7 @@ impl Default for Stone {
 impl Default for Background {
     fn default() -> Background {
         Background {
-            rgb: RGB { red: 40, green: 30, blue: 10 },
+            rgb: RGB { red: 0, green: 0, blue: 0 },
             state: State::Free
         }
     }
