@@ -9,8 +9,10 @@ use sdl2::surface::Surface;
 
 mod material;
 mod pixel_buffer;
+
 mod simulation_engine;
 use simulation_engine::SimulationEngine;
+
 
 const SCREEN_WIDTH: u32 = 800;
 const SCREEN_HEIGHT: u32 = 600;
