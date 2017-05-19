@@ -3,30 +3,14 @@ pub mod trait_update_pixel_buffer;
 
 use pixel_buffer;
 use material::Material;
+use material::MaterialTemp;
 use material::RGB;
 use sdl2;
 use sdl2::event::Event;
 use time;
 use std::mem;
 use std::vec;
-
-pub struct SimulationEngine {
-    pixel_buffer: pixel_buffer::PixelBuffer,
-    buffer_width: usize,
-    buffer_height: usize,
-    time_at_last_update: time::SteadyTime,
-    cells_to_update: Vec<Loc>,
-    mouse_button_down: bool,
-    selected_material: Material
-}
-
-trait UpdateCellPositions {
-    fn update_cell_positions(&mut self);
-}
-
-trait UpdatePixelBuffer {
-    fn update_pixel_buffer(&mut self);
-}
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct Loc {
@@ -42,6 +26,39 @@ pub enum State {
     Dead
 }
 
+#[derive(Clone, Hash, Eq, PartialEq, Debug)]
+pub struct Position {
+    x: usize,
+    y: usize
+}
+
+#[derive(Clone, PartialEq, Debug)]
+pub struct Cell{
+    prev: Position,
+    curr: Position,
+    state: State,
+    material: Material
+}
+
+pub struct SimulationEngine {
+    pixel_buffer: pixel_buffer::PixelBuffer,
+    buffer_width: usize,
+    buffer_height: usize,
+    time_at_last_update: time::SteadyTime,
+    cells_to_update: Vec<Loc>,
+    mouse_button_down: bool,
+    selected_material: Material,
+    cells: HashMap<Position, Cell>
+}
+
+trait UpdateCellPositions {
+    fn update_cell_positions(&mut self);
+}
+
+trait UpdatePixelBuffer {
+    fn update_pixel_buffer(&mut self);
+}
+
 impl SimulationEngine {
     pub fn new(width: usize, height: usize) -> SimulationEngine {
         SimulationEngine {
@@ -51,7 +68,9 @@ impl SimulationEngine {
             time_at_last_update: time::SteadyTime::now(),
             cells_to_update: vec![Loc{curr: (10, 10), prev: (10, 10), state: State::Calc}],
             mouse_button_down: false,
-            selected_material: Material::sand()
+            selected_material: Material::sand(),
+            cells: HashMap::new()
+
         }
     }
 
@@ -86,20 +105,23 @@ impl SimulationEngine {
 
     pub fn add_to_map(&mut self, x: usize, y: usize) {
         let ref mut row = self.pixel_buffer[y];
-        row[x].contents = self.selected_material.clone();
-        self.cells_to_update.push( Loc { curr: (y, x), prev: (y, x), state: State::Calc } )
+        if row[x].contents == Material::default() {
+            row[x].contents = self.selected_material.clone();
+            self.cells_to_update.push( Loc { curr: (y, x), prev: (y, x), state: State::Calc } )
+        }
     }
 
     pub fn add_sand(&mut self, x: usize, y: usize) {
         let row = &mut self.pixel_buffer[y];
-        row[x].contents = Material::sand();
-        self.cells_to_update.push( Loc { curr: (y, x), prev: (y, x), state: State::Calc } )
+        if row[x].contents == Material::default() {
+            row[x].contents = Material::sand();
+            self.cells_to_update.push( Loc { curr: (y, x), prev: (y, x), state: State::Calc } )
+        }
     }
 
     fn clean_dead(&mut self) {
         self.cells_to_update.retain(|ref x| x.state != State::Dead);
     }
-
 
     pub fn update(&mut self, texture: &mut sdl2::render::Texture) {
         let previous_update = self.time_at_last_update;
@@ -113,14 +135,26 @@ impl SimulationEngine {
 
     fn update_texture(&mut self, texture: &mut sdl2::render::Texture) {
         let mut z: [u8; 800*600*3] = [0; 800*600*3];
+        let defMat = MaterialTemp::Background.rgb();
+        let mut offset: usize = 0;
         for y in 0..self.buffer_height {
             for x in 0..self.buffer_width {
-                let offset = y*2400+ x*3;
-                z[offset + 0] = self.rgb_index(x, y).red as u8;
-                z[offset + 1] = self.rgb_index(x, y).green as u8;
-                z[offset + 2] = self.rgb_index(x, y).blue as u8;
+                offset = y*2400+ x*3;
+                z[offset + 0] = defMat.red;
+                z[offset + 1] = defMat.green;
+                z[offset + 2] = defMat.blue;
             }
         }
-        texture.update(None,&z,2400).unwrap();
+
+        for position in self.cells {
+            offset = position.y * 2400 + position.x * 3;
+            offset = y * 2400+ x * 3;
+            z[offset + 0] = defMat.red;
+            z[offset + 1] = defMat.green;
+            z[offset + 2] = defMat.blue;
+        }
+
+        texture.update(None, &z, 2400).unwrap();
     }
+
 }

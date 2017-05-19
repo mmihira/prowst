@@ -2,7 +2,6 @@ use SimulationEngine;
 use simulation_engine::UpdatePixelBuffer;
 use simulation_engine::State;
 use simulation_engine::Loc;
-
 use material::Material;
 
 trait UpdatePixelBufferPrivate {

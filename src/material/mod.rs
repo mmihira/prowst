@@ -1,20 +1,12 @@
-#[derive(Clone, Debug)]
-pub struct RGB          { pub red: usize, pub green: usize, pub blue: usize  }
-#[derive(Clone, Debug)]
-pub struct Sand         { speed: f32, rgb: RGB , state: State }
-#[derive(Debug)]
-pub struct Water        { speed: f32, rgb: RGB , state: State }
-#[derive(Debug)]
-pub struct Stone        { speed: f32, rgb: RGB , state: State }
-#[derive(Debug)]
-pub struct Background   { rgb: RGB, state: State }
+#[derive(PartialEq, Clone, Debug)]
+pub struct RGB  { pub red: u8, pub green: u8, pub blue: u8 }
 
-#[derive(Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum Material {
-    Sand(Sand),
-    Water(Water),
-    Stone(Stone),
-    Background(Background)
+    Sand,
+    Water,
+    Stone,
+    Background
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -24,43 +16,23 @@ pub enum State {
     Dead
 }
 
+// Make the enum an actual ename without having a class as an argument
+// Then actually have a method which return properties of the enum
+// using a match statement
+// Define the properties of the material inside the function
+// Only the material attribute information requires will be returned at any one time
+/*
+ * For example fn rgb_for_material(material: Material) -> RGB { match material { ... } }
+ * like that
+ */
+
 impl Material {
-    pub fn rgb(&self) -> &RGB {
+    pub fn rgb(&self) -> RGB {
         match *self {
-            Material::Sand(ref x) => &x.rgb,
-            Material::Water(ref x) => &x.rgb,
-            Material::Stone(ref x) => &x.rgb,
-            Material::Background(ref x) => &x.rgb
-        }
-    }
-
-    pub fn default() -> Material {
-        Material::Background(Background::default())
-    }
-
-    pub fn sand() -> Material {
-        Material::Sand(Sand::default())
-    }
-
-    pub fn stone() -> Material {
-        Material::Stone(Stone::default())
-    }
-
-    pub fn state(&self) -> State {
-        match *self {
-            Material::Sand(ref x) => x.state,
-            Material::Water(ref x) => x.state,
-            Material::Stone(ref x) => x.state,
-            Material::Background(ref x) => x.state
-        }
-    }
-
-    pub fn set_state(&mut self, new_state: State) {
-        match *self {
-            Material::Sand(ref mut x) => x.state = new_state,
-            Material::Water(ref mut x) => x.state = new_state,
-            Material::Stone(ref mut x) => x.state = new_state,
-            Material::Background(ref mut x) => x.state = new_state
+            Material::Sand => RGB { red: 255, green: 255, blue: 255 },
+            Material::Water => RGB { red: 255, green: 255, blue: 255 },
+            Material::Stone => RGB { red: 255, green: 255, blue: 255 },
+            Material::Background => RGB { red: 0, green: 0, blue: 0 },
         }
     }
 }
@@ -75,44 +47,3 @@ impl Clone for Material {
         }
     }
 }
-
-impl Default for Sand {
-    fn default() -> Sand {
-        Sand {
-            speed: 0.10f32,
-            rgb: RGB { red: 255, green: 255, blue: 255 },
-            state: State::Free
-        }
-    }
-}
-
-impl Default for Water {
-    fn default() -> Water {
-        Water {
-            speed: 0.10f32,
-            rgb: RGB { red: 10, green: 10, blue: 10 },
-            state: State::Free
-        }
-    }
-}
-
-impl Default for Stone {
-    fn default() -> Stone {
-        Stone {
-            speed: 0.10f32,
-            rgb: RGB { red: 255, green: 0, blue: 0 },
-            state: State::Free
-        }
-    }
-}
-
-impl Default for Background {
-    fn default() -> Background {
-        Background {
-            rgb: RGB { red: 0, green: 0, blue: 0 },
-            state: State::Free
-        }
-    }
-}
-
-
