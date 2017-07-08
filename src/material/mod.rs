@@ -37,16 +37,3 @@ impl Material{
         Material::Sand
     }
 }
-
-// impl Clone for Material {
-//     fn clone(&self) -> Material {
-//         match *self {
-//             Material::Sand(ref x) => Material::Sand(x.clone()),
-//             Material::Water(_) => Material::Water(Water::default()),
-//             Material::Stone(_) => Material::Stone(Stone::default()),
-//             Material::Background(_) => Material::Background(Background::default())
-//         }
-//     }
-// }
-
-

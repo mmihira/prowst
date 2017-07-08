@@ -41,7 +41,7 @@ impl UpdateCellPositions for SimulationEngine {
                 self.map.change_state_at_index(y, x, State::Set);
             }
         }else {
-            if !self.map.something_at_index(y + 1,x - 1) {
+            if !self.map.something_at_index(y + 1, x - 1) {
                 self.map.move_material(y, x, y + 1, x - 1);
                 self.map.change_state_at_index(y + 1, x - 1, State::Set);
             } else if !self.map.something_at_index(y + 1, x + 1) {

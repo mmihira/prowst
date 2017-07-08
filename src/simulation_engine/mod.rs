@@ -24,7 +24,7 @@ pub struct SimulationEngine {
 
 trait UpdateCellPositions {
     fn update_cell_positions(&mut self);
-    fn try_move_side_down(&mut self,y: usize,x: usize);
+    fn try_move_side_down(&mut self, y: usize, x: usize);
     fn update_material(&mut self, y: usize, x: usize);
 }
 
@@ -80,10 +80,6 @@ impl SimulationEngine {
         }
     }
 
-    fn clean_dead(&mut self) {
-        self.cells_to_update.retain(|ref x| x.state != State::Dead);
-    }
-
     pub fn update(&mut self, texture: &mut sdl2::render::Texture) {
         let previous_update = self.time_at_last_update;
         if time::SteadyTime::now() - previous_update > time::Duration::milliseconds(10) {
@@ -97,7 +93,7 @@ impl SimulationEngine {
         let mut z: [u8; 800*600*3] = [0; 800*600*3];
         for y in 0..self.buffer_height {
             for x in 0..self.buffer_width {
-                let offset = y*2400+ x*3;
+                let offset = y * 2400 + x * 3;
                 z[offset + 0] = self.rgb_index(x, y).red as u8;
                 z[offset + 1] = self.rgb_index(x, y).green as u8;
                 z[offset + 2] = self.rgb_index(x, y).blue as u8;
