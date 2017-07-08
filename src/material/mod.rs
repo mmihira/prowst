@@ -1,118 +1,55 @@
 #[derive(Clone, Debug)]
-pub struct RGB          { pub red: usize, pub green: usize, pub blue: usize  }
-#[derive(Clone, Debug)]
-pub struct Sand         { speed: f32, rgb: RGB , state: State }
-#[derive(Debug)]
-pub struct Water        { speed: f32, rgb: RGB , state: State }
-#[derive(Debug)]
-pub struct Stone        { speed: f32, rgb: RGB , state: State }
-#[derive(Debug)]
-pub struct Background   { rgb: RGB, state: State }
-
-#[derive(Debug)]
-pub enum Material {
-    Sand(Sand),
-    Water(Water),
-    Stone(Stone),
-    Background(Background)
-}
+pub struct RGB  { pub red: usize, pub green: usize, pub blue: usize  }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub enum State {
+pub enum State  {
     Free,
     Set,
     Dead
 }
 
-impl Material {
-    pub fn rgb(&self) -> &RGB {
+#[derive(Debug, Clone, Copy)]
+pub struct MaterialAttribute { state: State }
+
+#[derive(Clone, Copy, Debug)]
+pub enum Material {
+    Sand(MaterialAttribute),
+    Water(MaterialAttribute),
+    Stone(MaterialAttribute)
+}
+
+impl Material{
+    pub fn rgb(&self) -> RGB {
         match *self {
-            Material::Sand(ref x) => &x.rgb,
-            Material::Water(ref x) => &x.rgb,
-            Material::Stone(ref x) => &x.rgb,
-            Material::Background(ref x) => &x.rgb
+            Material::Sand(_) => RGB{ red: 255, green: 255, blue: 255 },
+            Material::Water(_) => RGB{ red: 255, green: 255, blue: 255 },
+            Material::Stone(_) => RGB{ red: 255, green: 255, blue: 255 }
         }
     }
 
-    pub fn default() -> Material {
-        Material::Background(Background::default())
-    }
-
-    pub fn sand() -> Material {
-        Material::Sand(Sand::default())
-    }
-
-    pub fn stone() -> Material {
-        Material::Stone(Stone::default())
-    }
-
-    pub fn state(&self) -> State {
+    pub fn  speed(&self) -> f32 {
         match *self {
-            Material::Sand(ref x) => x.state,
-            Material::Water(ref x) => x.state,
-            Material::Stone(ref x) => x.state,
-            Material::Background(ref x) => x.state
+            Material::Sand(_) => 0.1f32,
+            Material::Water(_) => 0.1f32,
+            Material::Stone(_) => 0.1f32
         }
     }
 
-    pub fn set_state(&mut self, new_state: State) {
-        match *self {
-            Material::Sand(ref mut x) => x.state = new_state,
-            Material::Water(ref mut x) => x.state = new_state,
-            Material::Stone(ref mut x) => x.state = new_state,
-            Material::Background(ref mut x) => x.state = new_state
-        }
+    pub fn def_sand() -> Material {
+        Material::Sand(MaterialAttribute{state: State::Free})
     }
 }
 
-impl Clone for Material {
-    fn clone(&self) -> Material {
-        match *self {
-            Material::Sand(ref x) => Material::Sand(x.clone()),
-            Material::Water(_) => Material::Water(Water::default()),
-            Material::Stone(_) => Material::Stone(Stone::default()),
-            Material::Background(_) => Material::Background(Background::default())
-        }
-    }
-}
 
-impl Default for Sand {
-    fn default() -> Sand {
-        Sand {
-            speed: 0.10f32,
-            rgb: RGB { red: 255, green: 255, blue: 255 },
-            state: State::Free
-        }
-    }
-}
-
-impl Default for Water {
-    fn default() -> Water {
-        Water {
-            speed: 0.10f32,
-            rgb: RGB { red: 10, green: 10, blue: 10 },
-            state: State::Free
-        }
-    }
-}
-
-impl Default for Stone {
-    fn default() -> Stone {
-        Stone {
-            speed: 0.10f32,
-            rgb: RGB { red: 255, green: 0, blue: 0 },
-            state: State::Free
-        }
-    }
-}
-
-impl Default for Background {
-    fn default() -> Background {
-        Background {
-            rgb: RGB { red: 0, green: 0, blue: 0 },
-            state: State::Free
-        }
-    }
-}
+// impl Clone for Material {
+//     fn clone(&self) -> Material {
+//         match *self {
+//             Material::Sand(ref x) => Material::Sand(x.clone()),
+//             Material::Water(_) => Material::Water(Water::default()),
+//             Material::Stone(_) => Material::Stone(Stone::default()),
+//             Material::Background(_) => Material::Background(Background::default())
+//         }
+//     }
+// }
 
 

@@ -4,18 +4,21 @@ pub mod trait_update_pixel_buffer;
 use pixel_buffer;
 use material::Material;
 use material::RGB;
+use material_map::MaterialMap;
 use sdl2;
 use sdl2::event::Event;
 use time;
 use std::mem;
 use std::vec;
+use std::collections::HashMap;
+use uuid::Uuid;
 
 pub struct SimulationEngine {
-    pixel_buffer: pixel_buffer::PixelBuffer,
     buffer_width: usize,
     buffer_height: usize,
     time_at_last_update: time::SteadyTime,
     cells_to_update: Vec<Loc>,
+    map: MaterialMap,
     mouse_button_down: bool,
     selected_material: Material
 }
@@ -45,13 +48,13 @@ pub enum State {
 impl SimulationEngine {
     pub fn new(width: usize, height: usize) -> SimulationEngine {
         SimulationEngine {
-            pixel_buffer: pixel_buffer::new(width, height),
             buffer_width: width,
             buffer_height: height,
             time_at_last_update: time::SteadyTime::now(),
             cells_to_update: vec![Loc{curr: (10, 10), prev: (10, 10), state: State::Calc}],
             mouse_button_down: false,
-            selected_material: Material::sand()
+            selected_material: Material::def_sand(),
+            map: MaterialMap::new(width, height),
         }
     }
 
@@ -59,11 +62,11 @@ impl SimulationEngine {
         match *event {
             Event::KeyUp {keycode, ..}
                 if keycode.unwrap() == sdl2::keyboard::Keycode::K => {
-                    self.selected_material = Material::stone();
+                    self.selected_material = Material::def_sand();
             },
             Event::KeyUp {keycode, ..}
                 if keycode.unwrap() == sdl2::keyboard::Keycode::S => {
-                    self.selected_material = Material::sand();
+                    self.selected_material = Material::def_sand();
             },
             Event::MouseButtonDown {..} => {
                 self.mouse_button_down = true;
@@ -73,38 +76,30 @@ impl SimulationEngine {
             },
             Event::MouseMotion {x, y, ..} => {
                 if self.mouse_button_down {
-                    self.add_to_map(x as usize, y as usize);
+                    self.map.add_material(x as usize, y as usize, self.selected_material.clone());
                 }
             },
             _ => {}
         }
     }
 
-    pub fn rgb_index(&self, x: usize, y: usize)-> &RGB {
-        (&self.pixel_buffer)[y][x].contents.rgb()
-    }
-
-    pub fn add_to_map(&mut self, x: usize, y: usize) {
-        let ref mut row = self.pixel_buffer[y];
-        row[x].contents = self.selected_material.clone();
-        self.cells_to_update.push( Loc { curr: (y, x), prev: (y, x), state: State::Calc } )
-    }
-
-    pub fn add_sand(&mut self, x: usize, y: usize) {
-        let row = &mut self.pixel_buffer[y];
-        row[x].contents = Material::sand();
-        self.cells_to_update.push( Loc { curr: (y, x), prev: (y, x), state: State::Calc } )
+    pub fn rgb_index(&self, x: usize, y: usize)-> RGB {
+        match self.map.mat_map[y][x].contents {
+            Some(u) => self.map.rgb_of_uuid(u),
+            None => RGB{ red: 0, green: 0, blue: 0}
+        }
     }
 
     fn clean_dead(&mut self) {
         self.cells_to_update.retain(|ref x| x.state != State::Dead);
     }
 
-
     pub fn update(&mut self, texture: &mut sdl2::render::Texture) {
         let previous_update = self.time_at_last_update;
         if time::SteadyTime::now() - previous_update > time::Duration::milliseconds(50) {
             self.time_at_last_update = time::SteadyTime::now();
+            // updating postion and pixel_buffer allocation
+            // should happen in one call
             self.update_cell_positions();
             self.update_pixel_buffer();
             self.update_texture(texture);
