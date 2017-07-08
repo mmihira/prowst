@@ -5,41 +5,38 @@ pub struct RGB  { pub red: usize, pub green: usize, pub blue: usize  }
 pub enum State  {
     Free,
     Set,
+    Calc,
     Dead
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct MaterialAttribute { state: State }
-
 #[derive(Clone, Copy, Debug)]
 pub enum Material {
-    Sand(MaterialAttribute),
-    Water(MaterialAttribute),
-    Stone(MaterialAttribute)
+    Sand,
+    Water,
+    Stone
 }
 
 impl Material{
     pub fn rgb(&self) -> RGB {
         match *self {
-            Material::Sand(_) => RGB{ red: 255, green: 255, blue: 255 },
-            Material::Water(_) => RGB{ red: 255, green: 255, blue: 255 },
-            Material::Stone(_) => RGB{ red: 255, green: 255, blue: 255 }
+            Material::Sand => RGB{ red: 255, green: 255, blue: 255 },
+            Material::Water => RGB{ red: 255, green: 255, blue: 255 },
+            Material::Stone => RGB{ red: 255, green: 255, blue: 255 }
         }
     }
 
     pub fn  speed(&self) -> f32 {
         match *self {
-            Material::Sand(_) => 0.1f32,
-            Material::Water(_) => 0.1f32,
-            Material::Stone(_) => 0.1f32
+            Material::Sand => 0.1f32,
+            Material::Water => 0.1f32,
+            Material::Stone => 0.1f32
         }
     }
 
     pub fn def_sand() -> Material {
-        Material::Sand(MaterialAttribute{state: State::Free})
+        Material::Sand
     }
 }
-
 
 // impl Clone for Material {
 //     fn clone(&self) -> Material {

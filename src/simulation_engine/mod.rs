@@ -1,9 +1,8 @@
 pub mod trait_update_cell_positions;
-pub mod trait_update_pixel_buffer;
 
-use pixel_buffer;
 use material::Material;
 use material::RGB;
+use material::State;
 use material_map::MaterialMap;
 use sdl2;
 use sdl2::event::Event;
@@ -25,10 +24,8 @@ pub struct SimulationEngine {
 
 trait UpdateCellPositions {
     fn update_cell_positions(&mut self);
-}
-
-trait UpdatePixelBuffer {
-    fn update_pixel_buffer(&mut self);
+    fn try_move_side_down(&mut self,y: usize,x: usize);
+    fn update_material(&mut self, y: usize, x: usize);
 }
 
 #[derive(Debug)]
@@ -36,13 +33,6 @@ pub struct Loc {
     prev: (usize, usize),
     curr: (usize, usize),
     state: State
-}
-
-#[derive(Clone, PartialEq, Debug)]
-pub enum State {
-    Calc,
-    Set,
-    Dead
 }
 
 impl SimulationEngine {
@@ -83,7 +73,7 @@ impl SimulationEngine {
         }
     }
 
-    pub fn rgb_index(&self, x: usize, y: usize)-> RGB {
+    pub fn rgb_index(&self, x: usize, y: usize) -> RGB {
         match self.map.mat_map[y][x].contents {
             Some(u) => self.map.rgb_of_uuid(u),
             None => RGB{ red: 0, green: 0, blue: 0}
@@ -96,12 +86,9 @@ impl SimulationEngine {
 
     pub fn update(&mut self, texture: &mut sdl2::render::Texture) {
         let previous_update = self.time_at_last_update;
-        if time::SteadyTime::now() - previous_update > time::Duration::milliseconds(50) {
+        if time::SteadyTime::now() - previous_update > time::Duration::milliseconds(10) {
             self.time_at_last_update = time::SteadyTime::now();
-            // updating postion and pixel_buffer allocation
-            // should happen in one call
             self.update_cell_positions();
-            self.update_pixel_buffer();
             self.update_texture(texture);
         }
     }

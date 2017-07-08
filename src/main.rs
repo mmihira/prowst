@@ -1,6 +1,7 @@
 extern crate sdl2;
 extern crate time;
 extern crate uuid;
+extern crate rand;
 
 use sdl2::rect::Rect;
 use sdl2::event::Event;
@@ -11,9 +12,8 @@ use sdl2::surface::Surface;
 mod material;
 mod material_map;
 mod cell;
-mod pixel_buffer;
-
 mod simulation_engine;
+
 use simulation_engine::SimulationEngine;
 
 const SCREEN_WIDTH: u32 = 800;

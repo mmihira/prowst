@@ -6,6 +6,7 @@ authors = ["mmihira <mmihira.w@gmail.com>"]
 [dependencies]
 time = "0.1.36"
 uuid = { version = "0.5", features = ["v4"] }
+rand = "*"
 
 [dependencies.sdl2]
 version = "0.29"
