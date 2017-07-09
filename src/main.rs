@@ -13,6 +13,7 @@ mod material;
 mod material_map;
 mod cell;
 mod simulation_engine;
+mod brushes;
 
 use simulation_engine::SimulationEngine;
 

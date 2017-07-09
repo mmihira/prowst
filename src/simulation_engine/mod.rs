@@ -12,6 +12,7 @@ use material::Material;
 use material::RGB;
 use material::State;
 use material_map::MaterialMap;
+use brushes;
 
 pub mod trait_update_cell_positions;
 use simulation_engine::trait_update_cell_positions::UpdateCellPositions;
@@ -55,7 +56,11 @@ impl SimulationEngine {
             },
             Event::MouseMotion {x, y, ..} => {
                 if self.mouse_button_down {
-                    self.map.add_material(x as usize, y as usize, self.selected_material.clone());
+                    for cord in brushes::circle( 10.0, y, x, self.buffer_height, self.buffer_width, 0.8) {
+                            self.map.add_material(cord.1 as usize,
+                                                  cord.0 as usize,
+                                                  self.selected_material.clone());
+                    }
                 }
             },
             _ => {}
