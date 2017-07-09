@@ -1,8 +1,13 @@
 use SimulationEngine;
-use simulation_engine::UpdateCellPositions;
 use material::State;
 use time;
 use rand;
+
+pub trait UpdateCellPositions {
+    fn update_cell_positions(&mut self);
+    fn try_move_side_down(&mut self, y: usize, x: usize);
+    fn update_material(&mut self, y: usize, x: usize);
+}
 
 impl UpdateCellPositions for SimulationEngine {
     fn update_cell_positions(&mut self) {

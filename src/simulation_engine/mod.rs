@@ -1,38 +1,28 @@
-pub mod trait_update_cell_positions;
+use std::mem;
+use std::vec;
+use std::collections::HashMap;
+
+use sdl2;
+use sdl2::event::Event;
+
+use time;
+use uuid::Uuid;
 
 use material::Material;
 use material::RGB;
 use material::State;
 use material_map::MaterialMap;
-use sdl2;
-use sdl2::event::Event;
-use time;
-use std::mem;
-use std::vec;
-use std::collections::HashMap;
-use uuid::Uuid;
+
+pub mod trait_update_cell_positions;
+use simulation_engine::trait_update_cell_positions::UpdateCellPositions;
 
 pub struct SimulationEngine {
     buffer_width: usize,
     buffer_height: usize,
     time_at_last_update: time::SteadyTime,
-    cells_to_update: Vec<Loc>,
     map: MaterialMap,
     mouse_button_down: bool,
     selected_material: Material
-}
-
-trait UpdateCellPositions {
-    fn update_cell_positions(&mut self);
-    fn try_move_side_down(&mut self, y: usize, x: usize);
-    fn update_material(&mut self, y: usize, x: usize);
-}
-
-#[derive(Debug)]
-pub struct Loc {
-    prev: (usize, usize),
-    curr: (usize, usize),
-    state: State
 }
 
 impl SimulationEngine {
@@ -41,7 +31,6 @@ impl SimulationEngine {
             buffer_width: width,
             buffer_height: height,
             time_at_last_update: time::SteadyTime::now(),
-            cells_to_update: vec![Loc{curr: (10, 10), prev: (10, 10), state: State::Calc}],
             mouse_button_down: false,
             selected_material: Material::def_sand(),
             map: MaterialMap::new(width, height),
@@ -73,7 +62,7 @@ impl SimulationEngine {
         }
     }
 
-    pub fn rgb_index(&self, x: usize, y: usize) -> RGB {
+    fn rgb_index(&self, x: usize, y: usize) -> RGB {
         match self.map.mat_map[y][x].contents {
             Some(u) => self.map.rgb_of_uuid(u),
             None => RGB{ red: 0, green: 0, blue: 0}

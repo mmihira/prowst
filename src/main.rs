@@ -47,6 +47,7 @@ pub fn main() {
         }
 
         simulation_engine.update(&mut texture);
+
         renderer.clear();
         renderer.copy(&texture, None, Some(Rect::new(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT))).unwrap();
         renderer.present();
