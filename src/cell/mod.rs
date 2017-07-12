@@ -1,8 +1,15 @@
 use material::Material;
+use material::State;
+
+#[derive(Copy, Clone, Debug)]
+pub struct MaterialRecord {
+    pub mat: Material,
+    pub state: State
+}
 
 #[derive(Copy, Clone, Debug)]
 pub struct Cell {
-    pub contents: Option<usize>
+    pub contents: Option<MaterialRecord>
 }
 
 impl Cell {

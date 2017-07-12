@@ -26,15 +26,14 @@ impl UpdateCellPositions for SimulationEngine {
     }
 
     fn update_material(&mut self, y: usize, x: usize) {
-        let u = self.map.uuid_at_index(y, x);
         if self.map.something_at_index(y + 1, x) &&
            x > 0 && x < self.buffer_width-1 {
             self.try_move_side_down(y, x);
         } else if !self.map.something_at_index(y + 1, x) {
             self.map.move_material(y, x, y + 1, x);
-            self.map.change_state_of_uuid(u, State::Set);
+            self.map.change_state_at_index(y + 1, x, State::Set);
         } else {
-            self.map.change_state_of_uuid(u, State::Set);
+            self.map.change_state_at_index(y, x, State::Set);
         }
     }
 
