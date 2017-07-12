@@ -5,11 +5,12 @@ use cell::Cell;
 use cell::MaterialRecord;
 use material::RGB;
 use material::State;
+use window;
 
 pub struct MaterialMap {
     map_width: usize,
     map_height: usize,
-    pub mat_map: Vec<Cell>
+    pub mat_map: [Cell; window::SCREEN_HEIGHT * window::SCREEN_WIDTH]
 }
 
 impl MaterialMap {
@@ -17,7 +18,7 @@ impl MaterialMap {
         let mut ret = MaterialMap {
             map_width: width,
             map_height: height,
-            mat_map: vec![Cell::default(); width*height]
+            mat_map: [Cell::default(); window::SCREEN_WIDTH*window::SCREEN_HEIGHT]
         };
         ret.add_material(100, 100, Material::Sand);
         ret
