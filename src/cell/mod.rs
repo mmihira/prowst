@@ -1,9 +1,8 @@
 use material::Material;
-use uuid::Uuid;
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct Cell {
-    pub contents: Option<Uuid>
+    pub contents: Option<usize>
 }
 
 impl Cell {

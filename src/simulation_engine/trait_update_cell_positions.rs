@@ -2,6 +2,7 @@ use SimulationEngine;
 use material::State;
 use time;
 use rand;
+use rand::distributions::{IndependentSample, Range};
 
 pub trait UpdateCellPositions {
     fn update_cell_positions(&mut self);

@@ -6,7 +6,6 @@ use sdl2;
 use sdl2::event::Event;
 
 use time;
-use uuid::Uuid;
 
 use material::Material;
 use material::RGB;
@@ -68,7 +67,7 @@ impl SimulationEngine {
     }
 
     fn rgb_index(&self, x: usize, y: usize) -> RGB {
-        match self.map.mat_map[y][x].contents {
+        match self.map.contents_at_index(y, x) {
             Some(u) => self.map.rgb_of_uuid(u),
             None => RGB{ red: 0, green: 0, blue: 0}
         }
@@ -87,6 +86,7 @@ impl SimulationEngine {
         let mut z: [u8; 800*600*3] = [0; 800*600*3];
         for y in 0..self.buffer_height {
             for x in 0..self.buffer_width {
+                // This could be faster if we give a view into the buffer space for allocation
                 let offset = y * 2400 + x * 3;
                 z[offset + 0] = self.rgb_index(x, y).red as u8;
                 z[offset + 1] = self.rgb_index(x, y).green as u8;

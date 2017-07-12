@@ -1,6 +1,5 @@
 extern crate sdl2;
 extern crate time;
-extern crate uuid;
 extern crate rand;
 
 use sdl2::rect::Rect;
@@ -53,4 +52,5 @@ pub fn main() {
         renderer.copy(&texture, None, Some(Rect::new(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT))).unwrap();
         renderer.present();
     }
+
 }
