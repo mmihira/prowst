@@ -12,6 +12,7 @@ use material::RGB;
 use material::State;
 use material_map::MaterialMap;
 use brushes;
+use window;
 
 pub mod trait_update_cell_positions;
 use simulation_engine::trait_update_cell_positions::UpdateCellPositions;
@@ -55,7 +56,7 @@ impl SimulationEngine {
             },
             Event::MouseMotion {x, y, ..} => {
                 if self.mouse_button_down {
-                    for cord in brushes::circle( 10.0, y, x, self.buffer_height, self.buffer_width, 0.8) {
+                    for cord in brushes::circle( 30.0, y, x, self.buffer_height, self.buffer_width, 0.8) {
                             self.map.add_material(cord.1 as usize,
                                                   cord.0 as usize,
                                                   self.selected_material.clone());
@@ -66,10 +67,14 @@ impl SimulationEngine {
         }
     }
 
-    fn rgb_index(&self, x: usize, y: usize) -> RGB {
-        match self.map.contents_at_index(y, x) {
-            Some(u) => self.map.rgb_of_uuid(u),
-            None => RGB{ red: 0, green: 0, blue: 0}
+    fn assign_rgb(&self,buff: &mut [u8], y: usize, x: usize) {
+        let offset = y * window::SCREEN_WIDTH*3 + x * 3;
+        if self.map.something_at_index(y,x) {
+            self.map.copy_rgb_index(offset, buff, y, x);
+        } else {
+            buff[offset + 0] = 0;
+            buff[offset + 1] = 0;
+            buff[offset + 2] = 0;
         }
     }
 
@@ -83,14 +88,10 @@ impl SimulationEngine {
     }
 
     fn update_texture(&mut self, texture: &mut sdl2::render::Texture) {
-        let mut z: [u8; 800*600*3] = [0; 800*600*3];
+        let mut z: [u8; window::SCREEN_WIDTH * window::SCREEN_HEIGHT * 3] = [0; window::SCREEN_HEIGHT * window::SCREEN_WIDTH *3];
         for y in 0..self.buffer_height {
             for x in 0..self.buffer_width {
-                // This could be faster if we give a view into the buffer space for allocation
-                let offset = y * 2400 + x * 3;
-                z[offset + 0] = self.rgb_index(x, y).red as u8;
-                z[offset + 1] = self.rgb_index(x, y).green as u8;
-                z[offset + 2] = self.rgb_index(x, y).blue as u8;
+                self.assign_rgb(&mut z, y, x);
             }
         }
         texture.update(None,&z,2400).unwrap();

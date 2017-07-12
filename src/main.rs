@@ -13,16 +13,14 @@ mod material_map;
 mod cell;
 mod simulation_engine;
 mod brushes;
+mod window;
 
 use simulation_engine::SimulationEngine;
-
-const SCREEN_WIDTH: u32 = 800;
-const SCREEN_HEIGHT: u32 = 600;
 
 pub fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
-    let window = video_subsystem.window("prowst",   SCREEN_WIDTH, SCREEN_HEIGHT)
+    let window = video_subsystem.window("prowst", window::SCREEN_WIDTH as u32, window::SCREEN_HEIGHT as u32)
         .position_centered()
         .opengl()
         .build()
@@ -30,9 +28,9 @@ pub fn main() {
 
     let mut renderer = window.renderer().accelerated().build().unwrap();
     let mut texture = renderer.create_texture_streaming(
-        PixelFormatEnum::RGB24, SCREEN_WIDTH, SCREEN_HEIGHT).unwrap();
+        PixelFormatEnum::RGB24, window::SCREEN_WIDTH as u32, window::SCREEN_HEIGHT as u32).unwrap();
     let surface = Surface::new(512, 512, PixelFormatEnum::RGB24).unwrap();
-    let mut simulation_engine = SimulationEngine::new(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize);
+    let mut simulation_engine = SimulationEngine::new(window::SCREEN_WIDTH as usize, window::SCREEN_HEIGHT as usize);
     let mut event_pump = sdl_context.event_pump().unwrap();
 
     'running: loop {
@@ -49,7 +47,7 @@ pub fn main() {
         simulation_engine.update(&mut texture);
 
         renderer.clear();
-        renderer.copy(&texture, None, Some(Rect::new(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT))).unwrap();
+        renderer.copy(&texture, None, Some(Rect::new(0, 0, window::SCREEN_WIDTH as u32, window::SCREEN_HEIGHT as u32))).unwrap();
         renderer.present();
     }
 

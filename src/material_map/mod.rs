@@ -88,6 +88,13 @@ impl MaterialMap {
         self.mat_map[yfrom * self.map_width + xfrom].contents = None;
     }
 
+    pub fn copy_rgb_index(&self, offset: usize, buf: &mut [u8], y: usize, x: usize) {
+        let rgb = self.mat_register.get(&self.uuid_at_index(y, x)).unwrap().mat.rgb();
+        buf[offset + 0] = rgb.red as u8;
+        buf[offset + 1] = rgb.green as u8;
+        buf[offset + 2] = rgb.blue as u8;
+    }
+
     pub fn reset_states(&mut self) {
         for y in 0..self.map_height{
             for x in 0..self.map_width{
