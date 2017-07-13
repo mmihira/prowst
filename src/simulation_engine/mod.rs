@@ -26,6 +26,7 @@ pub struct SimulationEngine {
     mouse_button_down: bool,
     selected_material: Material,
     pixel_buffer: [u8; window::SCREEN_WIDTH * window::SCREEN_HEIGHT * 3],
+    // Consider moving this into a different struct
     cum_elapsed: Duration,
     frame_counter: i32
 }
