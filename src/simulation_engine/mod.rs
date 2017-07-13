@@ -23,7 +23,8 @@ pub struct SimulationEngine {
     time_at_last_update: time::SteadyTime,
     map: MaterialMap,
     mouse_button_down: bool,
-    selected_material: Material
+    selected_material: Material,
+    pixel_buffer: [u8; window::SCREEN_WIDTH * window::SCREEN_HEIGHT * 3]
 }
 
 impl SimulationEngine {
@@ -35,6 +36,7 @@ impl SimulationEngine {
             mouse_button_down: false,
             selected_material: Material::def_sand(),
             map: MaterialMap::new(width, height),
+            pixel_buffer: [0; window::SCREEN_HEIGHT * window::SCREEN_WIDTH *3]
         }
     }
 
@@ -57,9 +59,7 @@ impl SimulationEngine {
             Event::MouseMotion {x, y, ..} => {
                 if self.mouse_button_down {
                     for cord in brushes::circle( 30.0, y, x, self.buffer_height, self.buffer_width, 0.8) {
-                            self.map.add_material(cord.1 as usize,
-                                                  cord.0 as usize,
-                                                  self.selected_material.clone());
+                        self.add_selected_to_map(cord.0 as usize, cord.1 as usize);
                     }
                 }
             },
@@ -67,14 +67,14 @@ impl SimulationEngine {
         }
     }
 
-    fn assign_rgb(&self,buff: &mut [u8], y: usize, x: usize) {
-        let offset = y * window::SCREEN_WIDTH*3 + x * 3;
-        if self.map.something_at_index(y,x) {
-            self.map.copy_rgb_index(offset, buff, y, x);
-        } else {
-            buff[offset + 0] = 0;
-            buff[offset + 1] = 0;
-            buff[offset + 2] = 0;
+    fn add_selected_to_map(&mut self, y: usize, x: usize) {
+        if !self.map.something_at_index(y, x) {
+            let offset = y * window::SCREEN_WIDTH*3 + x * 3;
+            let rgb = self.selected_material.rgb();
+            self.pixel_buffer[offset + 0] = rgb.red as u8;
+            self.pixel_buffer[offset + 1] = rgb.green as u8;
+            self.pixel_buffer[offset + 2] = rgb.blue as u8;
+            self.map.add_material(y, x, self.selected_material.clone());
         }
     }
 
@@ -89,12 +89,6 @@ impl SimulationEngine {
     }
 
     fn update_texture(&mut self, texture: &mut sdl2::render::Texture) {
-        let mut z: [u8; window::SCREEN_WIDTH * window::SCREEN_HEIGHT * 3] = [0; window::SCREEN_HEIGHT * window::SCREEN_WIDTH *3];
-        for y in 0..self.buffer_height {
-            for x in 0..self.buffer_width {
-                self.assign_rgb(&mut z, y, x);
-            }
-        }
-        texture.update(None,&z,2400).unwrap();
+        texture.update(None, &self.pixel_buffer, 2400).unwrap();
     }
 }

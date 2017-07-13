@@ -15,20 +15,16 @@ pub struct MaterialMap {
 
 impl MaterialMap {
     pub fn new(width: usize, height: usize) -> MaterialMap {
-        let mut ret = MaterialMap {
+        MaterialMap {
             map_width: width,
             map_height: height,
             mat_map: [Cell::default(); window::SCREEN_WIDTH*window::SCREEN_HEIGHT]
-        };
-        ret.add_material(100, 100, Material::Sand);
-        ret
+        }
     }
 
-    pub fn add_material(&mut self, width: usize, height: usize, material: Material){
-        if !self.something_at_index(height, width) {
-            let m = MaterialRecord{ mat: material, state: State::Free };
-            self.mat_map[height*self.map_width + width].contents = Some(m);
-        }
+    pub fn add_material(&mut self, y: usize, x: usize, material: Material){
+        let m = MaterialRecord{ mat: material, state: State::Free };
+        self.mat_map[y*self.map_width + x].contents = Some(m);
     }
 
     pub fn change_state_at_index(&mut self, y: usize, x: usize, state: State) {
@@ -53,6 +49,10 @@ impl MaterialMap {
         self.mat_map[y * self.map_width + x].contents.unwrap().state
     }
 
+    pub fn rgb_at_index(&self, y: usize, x: usize) -> RGB {
+        self.mat_map[y * self.map_width + x].contents.unwrap().mat.rgb()
+    }
+
     pub fn move_material(&mut self, yfrom: usize, xfrom: usize, yto: usize, xto: usize) {
         {
             let moving = &self.mat_map[yfrom*self.map_width + xfrom].contents.unwrap();
@@ -60,13 +60,6 @@ impl MaterialMap {
             self.mat_map[yto * self.map_width + xto].contents = Some(*moving);
         }
         self.mat_map[yfrom * self.map_width + xfrom].contents = None;
-    }
-
-    pub fn copy_rgb_index(&self, offset: usize, buf: &mut [u8], y: usize, x: usize) {
-        let rgb = self.mat_map[y * self.map_width + x].contents.unwrap().mat.rgb();
-        buf[offset + 0] = rgb.red as u8;
-        buf[offset + 1] = rgb.green as u8;
-        buf[offset + 2] = rgb.blue as u8;
     }
 
     pub fn reset_states(&mut self) {
