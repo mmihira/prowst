@@ -6,6 +6,7 @@ use sdl2;
 use sdl2::event::Event;
 
 use time;
+use time::Duration;
 
 use material::Material;
 use material::RGB;
@@ -24,7 +25,9 @@ pub struct SimulationEngine {
     map: MaterialMap,
     mouse_button_down: bool,
     selected_material: Material,
-    pixel_buffer: [u8; window::SCREEN_WIDTH * window::SCREEN_HEIGHT * 3]
+    pixel_buffer: [u8; window::SCREEN_WIDTH * window::SCREEN_HEIGHT * 3],
+    cum_elapsed: Duration,
+    frame_counter: i32
 }
 
 impl SimulationEngine {
@@ -36,7 +39,9 @@ impl SimulationEngine {
             mouse_button_down: false,
             selected_material: Material::def_sand(),
             map: MaterialMap::new(width, height),
-            pixel_buffer: [0; window::SCREEN_HEIGHT * window::SCREEN_WIDTH *3]
+            pixel_buffer: [0; window::SCREEN_HEIGHT * window::SCREEN_WIDTH *3],
+            cum_elapsed: Duration::seconds(0),
+            frame_counter: 0
         }
     }
 
@@ -86,6 +91,13 @@ impl SimulationEngine {
             self.time_at_last_update = time::SteadyTime::now();
         }
         self.update_texture(texture);
+        self.cum_elapsed = self.cum_elapsed + time_elapsed;
+        self.frame_counter = self.frame_counter + 1;
+        if self.cum_elapsed > time::Duration::seconds(1) {
+            println!("frames per second {}", self.frame_counter);
+            self.frame_counter = 0;
+            self.cum_elapsed = Duration::seconds(0);
+        }
     }
 
     fn update_texture(&mut self, texture: &mut sdl2::render::Texture) {
