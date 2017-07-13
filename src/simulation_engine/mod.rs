@@ -87,11 +87,15 @@ impl SimulationEngine {
     pub fn update(&mut self, texture: &mut sdl2::render::Texture) {
         let previous_update = self.time_at_last_update;
         let time_elapsed = time::SteadyTime::now() - previous_update;
+
         if time_elapsed > time::Duration::milliseconds(10) {
             self.update_cell_positions(&time_elapsed);
             self.time_at_last_update = time::SteadyTime::now();
         }
+
         self.update_texture(texture);
+
+        let time_elapsed = time::SteadyTime::now() - previous_update;
         self.cum_elapsed = self.cum_elapsed + time_elapsed;
         self.frame_counter = self.frame_counter + 1;
         if self.cum_elapsed > time::Duration::seconds(1) {
