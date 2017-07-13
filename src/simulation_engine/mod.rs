@@ -22,13 +22,15 @@ pub struct SimulationEngine {
     buffer_width: usize,
     buffer_height: usize,
     time_at_last_update: time::SteadyTime,
+    time_at_last_render: time::SteadyTime,
     map: MaterialMap,
     mouse_button_down: bool,
     selected_material: Material,
     pixel_buffer: [u8; window::SCREEN_WIDTH * window::SCREEN_HEIGHT * 3],
     // Consider moving this into a different struct
     cum_elapsed: Duration,
-    frame_counter: i32
+    frame_counter: i32,
+    update_counter: i32
 }
 
 impl SimulationEngine {
@@ -37,12 +39,15 @@ impl SimulationEngine {
             buffer_width: width,
             buffer_height: height,
             time_at_last_update: time::SteadyTime::now(),
+            time_at_last_render: time::SteadyTime::now(),
             mouse_button_down: false,
             selected_material: Material::def_sand(),
             map: MaterialMap::new(width, height),
             pixel_buffer: [0; window::SCREEN_HEIGHT * window::SCREEN_WIDTH *3],
             cum_elapsed: Duration::seconds(0),
-            frame_counter: 0
+            frame_counter: 0,
+            update_counter: 0
+
         }
     }
 
@@ -88,19 +93,25 @@ impl SimulationEngine {
         let previous_update = self.time_at_last_update;
         let time_elapsed = time::SteadyTime::now() - previous_update;
 
-        if time_elapsed > time::Duration::milliseconds(10) {
+        if time_elapsed >= time::Duration::milliseconds(10) {
             self.update_cell_positions(&time_elapsed);
             self.time_at_last_update = time::SteadyTime::now();
+            self.update_counter = self.update_counter + 1;
         }
 
         self.update_texture(texture);
 
-        let time_elapsed = time::SteadyTime::now() - previous_update;
-        self.cum_elapsed = self.cum_elapsed + time_elapsed;
         self.frame_counter = self.frame_counter + 1;
+        let last_render_time = self.time_at_last_render;
+        self.time_at_last_render = time::SteadyTime::now();
+        let time_between_render = self.time_at_last_render - last_render_time;
+        self.cum_elapsed = self.cum_elapsed + time_between_render;
+
         if self.cum_elapsed > time::Duration::seconds(1) {
             println!("frames per second {}", self.frame_counter);
+            println!("updates per second {}", self.update_counter);
             self.frame_counter = 0;
+            self.update_counter = 0;
             self.cum_elapsed = Duration::seconds(0);
         }
     }
