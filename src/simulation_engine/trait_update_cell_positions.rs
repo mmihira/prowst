@@ -1,17 +1,20 @@
 use SimulationEngine;
 use material::State;
+use material::Material;
 use time;
 use rand;
 use rand::distributions::{IndependentSample, Range};
 
 pub trait UpdateCellPositions {
-    fn update_cell_positions(&mut self);
+    fn update_cell_positions(&mut self, elapsed: &time::Duration);
     fn try_move_side_down(&mut self, y: usize, x: usize);
-    fn update_material(&mut self, y: usize, x: usize);
+    fn handle_sand(&mut self, y: usize, x: usize);
+    fn handle_water(&mut self, y: usize, x: usize);
+    fn move_material(&mut self, yfrom: usize, xfrom: usize, yto: usize, yto: usize);
 }
 
 impl UpdateCellPositions for SimulationEngine {
-    fn update_cell_positions(&mut self) {
+    fn update_cell_positions(&mut self, elapsed: &time::Duration) {
         self.map.reset_states();
 
         for y in 0..self.buffer_height {
@@ -19,41 +22,52 @@ impl UpdateCellPositions for SimulationEngine {
                 if self.map.something_at_index(y, x) &&
                    self.map.state_at_index(y, x) == State::Free &&
                    y < (self.buffer_height - 1) {
-                        self.update_material(y, x);
+                       match self.map.material_at_index(y, x) {
+                           Material::Sand => self.handle_sand(y, x),
+                           Material::Water => (),
+                           Material::Stone => ()
                     }
+                   }
             }
         }
     }
 
-    fn update_material(&mut self, y: usize, x: usize) {
+    fn move_material(&mut self, yfrom: usize, xfrom: usize, yto: usize, xto: usize) {
+        self.map.move_material(yfrom, xfrom, yto, xto);
+    }
+
+    fn handle_sand(&mut self, y: usize, x: usize) {
         if self.map.something_at_index(y + 1, x) &&
            x > 0 && x < self.buffer_width-1 {
             self.try_move_side_down(y, x);
         } else if !self.map.something_at_index(y + 1, x) {
-            self.map.move_material(y, x, y + 1, x);
+            self.move_material(y, x, y + 1, x);
             self.map.change_state_at_index(y + 1, x, State::Set);
         } else {
             self.map.change_state_at_index(y, x, State::Set);
         }
     }
 
+    fn handle_water(&mut self, y:usize, x:usize) {
+    }
+
     fn try_move_side_down(&mut self,y: usize,x: usize){
         if rand::random::<bool>() {
             if !self.map.something_at_index(y + 1, x + 1) {
-                self.map.move_material(y, x, y + 1, x + 1);
+                self.move_material(y, x, y + 1, x + 1);
                 self.map.change_state_at_index(y + 1, x + 1, State::Set);
             } else if !self.map.something_at_index(y + 1, x - 1) {
-                self.map.move_material(y, x, y + 1, x - 1);
+                self.move_material(y, x, y + 1, x - 1);
                 self.map.change_state_at_index(y + 1, x - 1, State::Set);
             } else {
                 self.map.change_state_at_index(y, x, State::Set);
             }
         }else {
             if !self.map.something_at_index(y + 1, x - 1) {
-                self.map.move_material(y, x, y + 1, x - 1);
+                self.move_material(y, x, y + 1, x - 1);
                 self.map.change_state_at_index(y + 1, x - 1, State::Set);
             } else if !self.map.something_at_index(y + 1, x + 1) {
-                self.map.move_material(y, x, y + 1, x + 1);
+                self.move_material(y, x, y + 1, x + 1);
                 self.map.change_state_at_index(y + 1, x + 1, State::Set);
             } else {
                 self.map.change_state_at_index(y, x, State::Set);

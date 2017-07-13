@@ -41,6 +41,10 @@ impl MaterialMap {
         self.mat_map[y * self.map_width + x].contents.is_some()
     }
 
+    pub fn material_at_index(&self, y: usize, x:usize) -> Material {
+        self.mat_map[y * self.map_width + x].contents.unwrap().mat
+    }
+
     pub fn contents_at_index (&self, y: usize, x: usize) -> Option<MaterialRecord>{
         self.mat_map[y * self.map_width + x].contents
     }

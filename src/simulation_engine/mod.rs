@@ -80,11 +80,12 @@ impl SimulationEngine {
 
     pub fn update(&mut self, texture: &mut sdl2::render::Texture) {
         let previous_update = self.time_at_last_update;
-        if time::SteadyTime::now() - previous_update > time::Duration::milliseconds(10) {
+        let time_elapsed = time::SteadyTime::now() - previous_update;
+        if time_elapsed > time::Duration::milliseconds(10) {
+            self.update_cell_positions(&time_elapsed);
             self.time_at_last_update = time::SteadyTime::now();
-            self.update_cell_positions();
-            self.update_texture(texture);
         }
+        self.update_texture(texture);
     }
 
     fn update_texture(&mut self, texture: &mut sdl2::render::Texture) {

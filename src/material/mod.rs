@@ -1,3 +1,5 @@
+use time;
+
 #[derive(Clone, Debug)]
 pub struct RGB  { pub red: usize, pub green: usize, pub blue: usize  }
 
