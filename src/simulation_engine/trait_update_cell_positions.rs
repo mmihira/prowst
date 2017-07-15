@@ -52,7 +52,9 @@ impl UpdateCellPositions for SimulationEngine {
     }
 
     fn handle_sand(&mut self, y: usize, x: usize) {
-        if self.map.something_at_index(y + 1, x) &&
+        if y < (self.buffer_height - 2) &&
+           self.map.something_at_index(y + 1, x) &&
+           self.map.something_at_index(y + 2, x) &&
            x > 0 && x < self.buffer_width-1 {
             self.try_move_side_down(y, x);
         } else if !self.map.something_at_index(y + 1, x) {
