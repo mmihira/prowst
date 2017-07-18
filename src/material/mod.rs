@@ -22,8 +22,8 @@ impl Material{
     pub fn rgb(&self) -> RGB {
         match *self {
             Material::Sand => RGB{ red: 255, green: 255, blue: 255 },
-            Material::Water => RGB{ red: 255, green: 255, blue: 255 },
-            Material::Stone => RGB{ red: 255, green: 255, blue: 255 }
+            Material::Water => RGB{ red: 51, green: 187, blue: 255 },
+            Material::Stone => RGB{ red: 102, green: 102, blue: 153 }
         }
     }
 
@@ -37,5 +37,13 @@ impl Material{
 
     pub fn def_sand() -> Material {
         Material::Sand
+    }
+
+    pub fn def_water() -> Material {
+        Material::Water
+    }
+
+    pub fn def_stone() -> Material {
+        Material::Stone
     }
 }

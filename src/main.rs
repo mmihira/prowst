@@ -14,6 +14,7 @@ mod cell;
 mod simulation_engine;
 mod brushes;
 mod window;
+mod counter;
 
 use simulation_engine::SimulationEngine;
 

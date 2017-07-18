@@ -14,6 +14,7 @@ use material::State;
 use material_map::MaterialMap;
 use brushes;
 use window;
+use counter::Counter;
 
 pub mod trait_update_cell_positions;
 use simulation_engine::trait_update_cell_positions::UpdateCellPositions;
@@ -23,6 +24,7 @@ pub struct SimulationEngine {
     buffer_height: usize,
     time_at_last_update: time::SteadyTime,
     time_at_last_render: time::SteadyTime,
+    generation_counter: Counter,
     map: MaterialMap,
     mouse_button_down: bool,
     selected_material: Material,
@@ -30,7 +32,9 @@ pub struct SimulationEngine {
     // Consider moving this into a different struct
     cum_elapsed: Duration,
     frame_counter: i32,
-    update_counter: i32
+    update_counter: i32,
+    t_count: i32,
+    p_count: i32,
 }
 
 impl SimulationEngine {
@@ -40,14 +44,16 @@ impl SimulationEngine {
             buffer_height: height,
             time_at_last_update: time::SteadyTime::now(),
             time_at_last_render: time::SteadyTime::now(),
+            generation_counter: Counter::new(),
             mouse_button_down: false,
-            selected_material: Material::def_sand(),
+            selected_material: Material::def_stone(),
             map: MaterialMap::new(width, height),
             pixel_buffer: [0; window::SCREEN_HEIGHT * window::SCREEN_WIDTH *3],
             cum_elapsed: Duration::seconds(0),
             frame_counter: 0,
-            update_counter: 0
-
+            update_counter: 0,
+            t_count: 0,
+            p_count: 0
         }
     }
 
@@ -69,7 +75,7 @@ impl SimulationEngine {
             },
             Event::MouseMotion {x, y, ..} => {
                 if self.mouse_button_down {
-                    for cord in brushes::circle( 30.0, y, x, self.buffer_height, self.buffer_width, 0.8) {
+                    for cord in brushes::circle( 5.0, y, x, self.buffer_height, self.buffer_width, 0.01) {
                         self.add_selected_to_map(cord.0 as usize, cord.1 as usize);
                     }
                 }
@@ -79,13 +85,18 @@ impl SimulationEngine {
     }
 
     fn add_selected_to_map(&mut self, y: usize, x: usize) {
+        let mat = self.selected_material.clone();
+        self.add_material_to_map(y, x, mat);
+    }
+
+    fn add_material_to_map(&mut self, y: usize, x: usize, material: Material ) {
         if !self.map.something_at_index(y, x) {
             let offset = y * window::SCREEN_WIDTH*3 + x * 3;
-            let rgb = self.selected_material.rgb();
+            let rgb = material.rgb();
             self.pixel_buffer[offset + 0] = rgb.red as u8;
             self.pixel_buffer[offset + 1] = rgb.green as u8;
             self.pixel_buffer[offset + 2] = rgb.blue as u8;
-            self.map.add_material(y, x, self.selected_material.clone());
+            self.map.add_material(y, x, material);
         }
     }
 
@@ -97,6 +108,18 @@ impl SimulationEngine {
             self.update_cell_positions(&time_elapsed);
             self.time_at_last_update = time::SteadyTime::now();
             self.update_counter = self.update_counter + 1;
+        }
+
+        if self.generation_counter.elapsed_gt(20) {
+            for cord in brushes::circle( 10.0, 10, 200, self.buffer_height, self.buffer_width, 0.9) {
+                self.add_material_to_map(cord.0 as usize, cord.1 as usize, Material::def_water());
+            }
+
+            for cord in brushes::circle( 10.0, 10, 600, self.buffer_height, self.buffer_width, 0.9) {
+                self.add_material_to_map(cord.0 as usize, cord.1 as usize, Material::def_sand());
+            }
+
+            self.generation_counter.reset();
         }
 
         self.update_texture(texture);

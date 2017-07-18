@@ -55,11 +55,15 @@ impl MaterialMap {
 
     pub fn move_material(&mut self, yfrom: usize, xfrom: usize, yto: usize, xto: usize) {
         {
-            let moving = &self.mat_map[yfrom*self.map_width + xfrom].contents.unwrap();
+            let moving = &self.mat_map[yfrom * self.map_width + xfrom].contents.unwrap();
             // To should always be none
             self.mat_map[yto * self.map_width + xto].contents = Some(*moving);
         }
         self.mat_map[yfrom * self.map_width + xfrom].contents = None;
+    }
+
+    pub fn remove_at_position(&mut self, y: usize, x: usize) {
+        self.mat_map[y * self.map_width + x].contents = None;
     }
 
     pub fn reset_states(&mut self) {
