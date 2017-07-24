@@ -75,7 +75,7 @@ impl SimulationEngine {
             },
             Event::MouseMotion {x, y, ..} => {
                 if self.mouse_button_down {
-                    for cord in brushes::circle( 5.0, y, x, self.buffer_height, self.buffer_width, 0.01) {
+                    for cord in brushes::circle( 2.0, y, x, self.buffer_height, self.buffer_width, 0.00001) {
                         self.add_selected_to_map(cord.0 as usize, cord.1 as usize);
                     }
                 }

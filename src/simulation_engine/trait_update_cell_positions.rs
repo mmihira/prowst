@@ -24,7 +24,6 @@ pub trait UpdateCellPositions {
 impl UpdateCellPositions for SimulationEngine {
     fn update_cell_positions(&mut self, elapsed: &time::Duration) {
         self.map.reset_states();
-        // println!("p: {}, t: {}, f: {}", self.p_count, self.t_count, self.p_count - self.t_count );
         for y in 0..self.buffer_height {
             if rand::random::<bool>() {
                 for x in (0..self.buffer_width) {
